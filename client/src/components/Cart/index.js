@@ -6,9 +6,16 @@ import './style.css';
 import { useStoreContext } from '../../utils/GlobalState';
 import { TOGGLE_CART, ADD_MULTIPLE_TO_CART } from '../../utils/actions';
 import { idbPromise } from '../../utils/helpers';
+import { QUERY_CHECKOUT } from '../../utils/queries';
+import { loadStripe } from '@stripe/stripe-js';
+import { useLazyQuery } from '@apollo/react-hooks';
+
+const stripePromise = loadStripe('pk_test_TYooMQauvdEDq54NiTphI7jx')
 
 const Cart = () => {
     const [state, dispatch] = useStoreContext();
+    // uselazyQuery executes only when told to
+    const [getCheckOut, { data }] = useLazyQuery(QUERY_CHECKOUT);
 
     // check if there's anything in the state's cart property on load. If not, we'll retrieve data from the IndexedDB cart object store.
     useEffect(() => {
@@ -22,6 +29,15 @@ const Cart = () => {
         }
     }, [state.cart.length, dispatch]);
 
+
+    useEffect(() => {
+        if (data) {
+            stripePromise.then((res) => {
+                res.redirectToCheckout({ sessionId: data.checkout.session });
+            });
+        }
+    }, [data]);
+    
     function toggleCart() {
         dispatch({ type: TOGGLE_CART });
     }
@@ -34,6 +50,20 @@ const Cart = () => {
         });
         return sum.toFixed(2);
     }
+
+    function submitCheckout() {
+        const productIds = [];
+
+        state.cart.forEach((item) => {
+            for (let i = 0; i < item.purchaseQuantity; i++) {
+                productIds.push(item._id);
+            }
+        });
+
+        getCheckOut({
+            variables: { products: productIds }
+        });
+    };
 
     if (!state.cartOpen) {
         return (
@@ -59,7 +89,7 @@ const Cart = () => {
                         <strong>Total: ${calculateTotal()}</strong>
                         {
                             Auth.loggedIn() ?
-                                <button>
+                                <button onClick={submitCheckout}>
                                     Checkout
                                 </button>
                                 :
