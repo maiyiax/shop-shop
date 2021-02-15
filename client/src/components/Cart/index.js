@@ -3,7 +3,6 @@ import CartItem from '../CartItem';
 import Auth from '../../utils/auth';
 import './style.css';
 
-// import { useStoreContext } from '../../utils/GlobalState';
 import { TOGGLE_CART, ADD_MULTIPLE_TO_CART } from '../../utils/actions';
 import { idbPromise } from '../../utils/helpers';
 import { QUERY_CHECKOUT } from '../../utils/queries';
@@ -14,7 +13,6 @@ import { useSelector, useDispatch } from 'react-redux';
 const stripePromise = loadStripe('pk_test_TYooMQauvdEDq54NiTphI7jx')
 
 const Cart = () => {
-    // const [state, dispatch] = useStoreContext();
     const state = useSelector(state => state);
     const dispatch = useDispatch();
 
@@ -78,7 +76,7 @@ const Cart = () => {
             </div>
         );
     };
-    
+
     return (
         <div className="cart">
             <div className="close" onClick={toggleCart}>[close]</div>
